@@ -1,0 +1,15 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:54326/odwsi
+    username: odwsi
+    password: odwsi
+  flyway:
+    url: jdbc:postgresql://localhost:54326/odwsi
+    password: odwsi
+    schemas: public
+  jpa:
+    show-sql: true
+
+vault:
+  uri: http://localhost:8200
+  token: token

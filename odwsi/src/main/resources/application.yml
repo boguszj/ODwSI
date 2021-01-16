@@ -1,0 +1,24 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://${DB_ADDRESS}:5432/odwsi
+    username: odwsi
+    password: ${DB_PASSWORD}
+  flyway:
+    url: jdbc:postgresql://${DB_ADDRESS}:5432/odwsi
+    password: ${DB_PASSWORD}
+    schemas: public
+  jpa:
+    show-sql: true
+  mvc:
+    view:
+      prefix: /WEB-INF/views/
+      suffix: .jsp
+    hiddenmethod:
+      filter:
+        enabled: true
+  messages:
+    basename: errors
+
+vault:
+  uri: ${VAULT_ADDR}
+  token: ${VAULT_TOKEN}

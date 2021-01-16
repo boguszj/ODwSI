@@ -1,0 +1,83 @@
+
+version: '2'
+services:
+
+  reverseproxy: 
+    image: nginx
+    volumes:
+      - "./nginx.conf:/etc/nginx/nginx.conf"
+      - "./selfsigned.key:/etc/nginx/selfsigned.key"
+      - "./selfsigned.crt:/etc/nginx/selfsigned.crt"
+    ports:
+      - mode: host
+        protocol: tcp
+        published: 443
+        target: 443
+    depends_on:
+      webapp:
+        condition: service_healthy
+    networks:
+      main:
+        aliases:
+          - reverseproxy
+
+  db:
+    image: postgres
+    environment:
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_USER: odwsi
+      POSTGRES_DB: odwsi
+    ports:
+      - "54326:5432"
+    expose:
+      - "5432"
+    networks:
+      main:
+        aliases:
+          - db
+
+  credentialsvault:
+    image: vault
+    environment:
+      VAULT_DEV_ROOT_TOKEN_ID: ${VAULT_TOKEN}
+      VAULT_ADDR: http://0.0.0.0:8200
+    volumes:
+      - "./vault_entrypoint.sh:/usr/local/bin/vault_entrypoint.sh:z"
+    entrypoint:
+      - vault_entrypoint.sh
+    expose:
+      - "8200"
+    networks:
+      main:
+        aliases:
+          - credentialsvault
+    healthcheck:
+      test: [ "CMD-SHELL", "vault status" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  webapp:
+    build: odwsi
+    environment:
+      DB_ADDRESS: "db"
+      DB_PASSWORD: ${DB_PASSWORD}
+      VAULT_ADDR: ${VAULT_ADDR}
+      VAULT_TOKEN: ${VAULT_TOKEN}
+    depends_on:
+      - db
+      - credentialsvault
+    expose:
+      - "8080"
+    networks:
+      main:
+        aliases:
+          - webapp
+    healthcheck:
+      test: "curl --fail --silent localhost:8080/actuator/health | grep UP || exit 1"
+      interval: 10s
+      timeout: 5s
+      retries: 100
+  
+networks:
+  main:

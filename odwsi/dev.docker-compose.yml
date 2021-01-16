@@ -1,0 +1,21 @@
+version: '3'
+services:
+  db:
+    image: postgres
+    environment:
+      POSTGRES_PASSWORD: odwsi
+      POSTGRES_USER: odwsi
+      POSTGRES_DB: odwsi
+    ports:
+      - "54326:5432"
+  credentials_vault:
+    image: vault
+    environment:
+      VAULT_DEV_ROOT_TOKEN_ID: token
+      VAULT_ADDR: http://0.0.0.0:8200
+    ports:
+      - "8200:8200"
+    volumes:
+      - "./vault_entrypoint.sh:/usr/local/bin/vault_entrypoint.sh:z"
+    entrypoint:
+      - vault_entrypoint.sh
